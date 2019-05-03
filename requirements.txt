@@ -1,0 +1,6 @@
+PyQt5
+dbus-python
+notify2
+pyinstaller
+
+
