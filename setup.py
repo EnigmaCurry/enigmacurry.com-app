@@ -64,8 +64,9 @@ class PyinstallerCommand(distutils.cmd.Command):
 
     def run(self):
         """Run command."""
-        command = ['pyinstaller', os.path.join("src", "main.py"),
-                   "--clean", "-F", "-n", program_name]
+        command = ['pyinstaller', "main.py",
+                   "--clean", "-F", "--add-data", "icon.png{}.".format(os.pathsep),
+                   "-n", program_name]
         log.info(
             'Running command: %s' % str(command))
         subprocess.check_call(command)
@@ -103,9 +104,9 @@ setup(
     description='EnigmaCurry.com desktop app',
     author='EnigmaCurry',
     url='https://github.com/EnigmaCurry/py-taskbar-app',
-    packages=find_packages('src'),
-    package_dir={'': 'src'},
-    py_modules=[splitext(basename(path))[0] for path in glob('src/*.py')],
+    packages=find_packages(os.curdir),
+    package_dir={'': os.curdir},
+    py_modules=[splitext(basename(path))[0] for path in glob('*.py')],
     include_package_data=True,
     zip_safe=False,
     classifiers=[
@@ -124,7 +125,7 @@ setup(
     install_requires=requirements(),
     entry_points={
         'console_scripts': [
-            'enigmacurry.com = lbry_channel_mirror.main:main',
+            'enigmacurry.com = main:main',
         ]
     },
 )

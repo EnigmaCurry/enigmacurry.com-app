@@ -3,10 +3,16 @@ from PyQt5.QtWidgets import QApplication, QSystemTrayIcon, QMenu, QAction
 from notify2 import init as notify_init, Notification
 
 import os
+import sys
 import subprocess
 import signal
 import shutil
 import logging
+
+def pyinstaller_resource_path(relative_path):
+    if hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.abspath("."), relative_path)
 
 class App(QSystemTrayIcon):
     def __init__(self,  parent=None, app_name="EnigmaCurry.com", app_url="https://www.enigmacurry.com"):
@@ -20,7 +26,7 @@ class App(QSystemTrayIcon):
         self._q_app.setQuitOnLastWindowClosed(False)
 
         QSystemTrayIcon.__init__(self, parent)
-        self.setIcon(QIcon("icon.png"))
+        self.setIcon(QIcon(pyinstaller_resource_path("icon.png")))
         self.show()
         self.activated.connect(self.onTrayIconActivated)
 
@@ -33,6 +39,7 @@ class App(QSystemTrayIcon):
         menu.addAction(quit_action)
         self.setContextMenu(menu)
 
+        self._notifications = []
         self.notify("title", "hello")
 
     def onTrayIconActivated(self, reason):
@@ -40,7 +47,13 @@ class App(QSystemTrayIcon):
             self.open()
 
     def quit(self):
-        exit(0)
+        for notification in self._notifications:
+            notification.close()
+        try:
+            self._browser_process.kill()
+        except AttributeError:
+            pass
+        sys.exit(0)
 
     def open(self, *args, **kwargs):
         try:
@@ -53,15 +66,16 @@ class App(QSystemTrayIcon):
 
     def notify(self, title, message, timeout=10):
         n = Notification("{app} - {title}".format(app=self._app_name, title=title),
-                         message, os.path.abspath("icon.png"))
+                     message, pyinstaller_resource_path("icon.png"))
         n.timeout = timeout * 1000
         n.add_action("open", "Open App", self.open)
         n.show()
+        self._notifications.append(n)
 
     def run(self):
         if not shutil.which("electron"):
             print("You must install electron - https://github.com/electron/electron/releases/latest")
-            exit(1)
+            sys.exit(1)
         self._q_app.exec_()
 
 def main():

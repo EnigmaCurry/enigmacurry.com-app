@@ -1,5 +1,6 @@
 dist
 env
 build
-*.spec
 *.pyc
+/enigmacurry.com.egg-info/
+enigmacurry.com.spec
